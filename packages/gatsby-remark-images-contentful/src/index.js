@@ -40,6 +40,11 @@ module.exports = async (
       return resolve()
     }
 
+    let originalImageUrl = node.url
+    if (!/^(http|https)?:\/\//i.test(node.url)) {
+      originalImageUrl = `https:${node.url}`
+    }
+
     const srcSplit = node.url.split(`/`)
     const fileName = srcSplit[srcSplit.length - 1]
     const options = _.defaults(pluginOptions, defaults)
@@ -59,7 +64,7 @@ module.exports = async (
 
     const response = await axios({
       method: `GET`,
-      url: `https:${node.url}`, // for some reason there is a './' prefix
+      url: originalImageUrl, // for some reason there is a './' prefix
       responseType: `stream`,
     })
 
@@ -71,13 +76,13 @@ module.exports = async (
 
     const responsiveSizesResult = await buildResponsiveSizes({
       metadata,
-      imageUrl: `https:${node.url}`,
+      imageUrl: originalImageUrl,
       options,
     })
     // Calculate the paddingBottom %
     const ratio = `${(1 / responsiveSizesResult.aspectRatio) * 100}%`
 
-    const fallbackSrc = `https${node.url}`
+    const fallbackSrc = originalImageUrl
     const srcSet = responsiveSizesResult.srcSet
     const presentationWidth = responsiveSizesResult.presentationWidth
 
